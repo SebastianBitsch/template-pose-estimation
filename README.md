@@ -1,3 +1,12 @@
+
+
+Make environment
+```
+~/python38/Python-3.8.13/python -m venv .venv
+```
+
+---
+
 <div align="center">
 <h2>
 Templates for 3D Object Pose Estimation Revisited:<br>  Generalization to New objects and Robustness to Occlusions
