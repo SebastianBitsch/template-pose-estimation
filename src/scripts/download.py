@@ -1,71 +1,34 @@
-import logging
-import os, sys
-import os.path as osp
+import os
 
-# set level logging
-logging.basicConfig(level=logging.INFO)
-import logging
-import hydra
-from omegaconf import DictConfig, OmegaConf
+from src.utils.utils import load_config, DotDict
 
 
-def run_download(config: DictConfig) -> None:
-    tmp_path = f"{osp.dirname(config.root_dir)}/zip/{osp.basename(config.root_dir)}.zip"
-    cad_tmp_path = (
-        f"{osp.dirname(config.root_dir)}/zip/{osp.basename(config.root_dir)}_cad.zip"
-    )
-    os.makedirs(f"{osp.dirname(config.root_dir)}/zip", exist_ok=True)
-    os.makedirs(config.root_dir, exist_ok=True)
+def download_dataset(config: DotDict, dataset_name: str) -> None:
+    """ 
+    Download an unzip a dataset into the datasets dir specified in the config file. 
+    See: https://bop.felk.cvut.cz/datasets/ for supported datasets 
+    """
+    dataset_dir         = os.path.join(config.data.datasets_dir, dataset_name)
+    download_base_url   = os.path.join(config.data.data_url, dataset_name, dataset_name)
+    temp_dir_base_path  = os.path.join(config.data.temp_dir, dataset_name)
 
-    # define command to download RGB
-    command = f"wget -O {tmp_path} {config.source.url}"
-    if config.source.http:
-        command += " --no-check-certificate"
-    logging.info(f"Running {command}")
-    os.system(command)
+    os.system(f"wget {download_base_url}_base.zip       -P {config.data.temp_dir}")
+    os.system(f"wget {download_base_url}_models.zip     -P {config.data.temp_dir}")
+    os.system(f"wget {download_base_url}_test_all.zip   -P {config.data.temp_dir}")
 
-    # unzip
-    if config.source.unzip_mode == "tar":
-        unzip_cmd = "tar xf {} -C {}".format(tmp_path, config.root_dir)
-    else:
-        unzip_cmd = "unzip {} -d {}".format(tmp_path, config.root_dir)
-    logging.info(f"Running {unzip_cmd}")
-    os.system(unzip_cmd)
-
-    # define command to download CAD models
-    command = f"wget -O {cad_tmp_path} {config.source.cad_url}  --no-check-certificate"
-    logging.info(f"Running {command}")
-    os.system(command)
-
-    # unzip
-    if osp.exists(f"{config.root_dir}/models"):
-        os.system(f"rm -r {config.root_dir}/models")
-    unzip_cmd = "unzip {} -d {}/models".format(cad_tmp_path, config.root_dir)
-    logging.info(f"Running {unzip_cmd}")
-    os.system(unzip_cmd)
-
-    if config.source.processing != "": # only happen with occlusion LINEMOD
-        if config.source.processing == "rename":
-            current_path = os.path.join(config.root_dir, "OcclusionChallengeICCV2015/*")
-            new_path = config.root_dir
-            rename_command = f"mv {current_path} {new_path}"
-            os.system(rename_command)
-            remove_command = f"rm -rf {config.root_dir}/OcclusionChallengeICCV2015"
-            os.system(remove_command)
+    os.system(f"unzip {temp_dir_base_path}_base.zip     -d {dataset_dir}")
+    os.system(f"unzip {temp_dir_base_path}_models.zip   -d {dataset_dir}")
+    os.system(f"unzip {temp_dir_base_path}_test_all.zip -d {dataset_dir}")
 
 
-@hydra.main(
-    version_base=None,
-    config_path="../../configs",
-    config_name="render",
-)
-def download(cfg: DictConfig) -> None:
-    OmegaConf.set_struct(cfg, False)
-    for data_cfg in cfg.data.values():
-        logging.info(f"Downloading {data_cfg.dataset_name}")
-        run_download(data_cfg)
-        logging.info(f"---" * 100)
+def download_datasets() -> None:
+    # TODO: Argparse config name
+    config = load_config("config.yaml")
+
+    for dataset_name in config.data.datasets:
+        print(f"=== Downloading dataset '{dataset_name}' ===")
+        download_dataset(config, dataset_name)
 
 
 if __name__ == "__main__":
-    download()
+    download_datasets()
