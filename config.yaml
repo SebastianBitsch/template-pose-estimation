@@ -1,0 +1,18 @@
+# TODO: I would like to rename the top dir from datasets to just data
+data:
+  data_url: https://huggingface.co/datasets/bop-benchmark/datasets/resolve/main # See: https://bop.felk.cvut.cz/datasets/
+  prerendered_templates_url: https://drive.google.com/file/d/16vUaQUFi3EJeUOWT-bwsDHPkWRimfLiV/view?usp=sharing
+
+  data_dir: datasets # would like to rename to data
+  datasets_dir: datasets/datasets
+  temp_dir: datasets/zip
+  templates_dir: datasets/templates
+
+  datasets:
+    - icbin
+
+model:
+  pretrained_weights_url: https://drive.google.com/file/d/1DwlMVdj7rPh3TZ2QfKDU4t4460gofm7i/view?usp=share_link # For the pretrained weights we initialize the model with before training
+  model_checkpoint_url: https://drive.google.com/file/d/1eRSXxELC71cQFTttXBEenb5NUJ5ciSIW/view?usp=sharing      # For the trained pose prediction model
+
+  checkpoints_dir: datasets/pretrained
